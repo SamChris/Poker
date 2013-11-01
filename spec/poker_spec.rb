@@ -58,6 +58,15 @@ describe Deck do
 
   end
 
+  describe "#deal_hand" do
+    it "returns 5 cards" do
+      deck.deal.length.should be 5
+    end
+    it "deck no longer contians dealt cards" do
+      deck.cards.length.should be 47
+    end
+  end
+
 
   describe "#shuffle" do
     it "shuffles cards" do
@@ -65,228 +74,120 @@ describe Deck do
     end
   end
 end
-
-
-
-
-
-
 # Hand
-# The logic of calculating pair, three-of-a-kind, two-pair, etc. goes here.
-# Logic of which hand beats which would go here.
+describe Hand do
+  subject(:hand) { Hand.new(Deck.new.deal_hand) }
+
+  describe "#cards" do
+    it "has five cards" do
+      hand.cards.length.should be 5
+    end
+
+
+
+     = Card.new(:hearts,:ace)
+
+    it "can be set in initialization" do
+
+  end
+
+  describe "#beat" do
+    # The logic of calculating pair, three-of-a-kind, two-pair, etc. goes here.
+    # Logic of which hand beats which would go here.
+    before do
+      init_cards = []
+      suits = [:spade,:clubs,:hearts,:diamonds,:clubs,:hearts]
+      values = [:seven,:three,:four,:five,:ace]
+      5.times do |i|
+        init_cards << Card.new(suits[i],values[i])
+      end
+      hand1 = Hand.new(init_cards)
+      suits = [:clubs,:hearts,:diamonds,:clubs,:hearts]
+      values = [:ace,:seven,:three,:three,:five]
+      init_cards = []
+      5.times do |i|
+        init_cards << Card.new(suits[i],values[i])
+      end
+      hand2 = Hand.new(init_cards)
+    end
+    it "two_pair beats no pair" do
+      hand2.beat?(han1).should be true
+    end
+  end
+
 # Player
-# Each player has a hand, plus a pot
-# Player has methods to ask the user:
-# Which cards they wish to discard
-# Whether they wish to fold, see, or raise.
+describe Player do
+  subject(:player) { Player.new(Hand.new(Deck.new.deal_hand)) }
+
+  describe "#pot" do
+    it "is amount of money in on table in fixnum " do
+      player.wallet.class.should be Fixnum
+    end
+  end
+
+  describe "#hand" do
+    it "player has hand " do
+      player.hand.class.should be Hand
+    end
+  end
+
+  describe "#get_discard" do
+    it "should get discarded cards" do
+      player.stub(:get_user_input).and_return('as,2d,5c')
+      expected_cards =[
+        Card.new(:ace,:spade),
+        Card.new(:two,:diamond),
+        Card.new(:five,:club)
+      ]
+      player.get_discard.should be expected_cards
+    end
+    it "hand should be modified" do
+      player.hand.cards.length.should be 2
+    end
+  end
+
+  describe "#get_action" do
+    it "should get player action f => :fold" do
+      player.stub(:get_user_input).and_return('f')
+      player.get_action.should be :fold
+    end
+    it "should get player action r => :raise" do
+      player.stub(:get_user_input).and_return('r')
+      player.get_action.should be :raise
+    end
+    it "should get player action s => :see" do
+      player.stub(:get_user_input).and_return('s')
+      player.get_action.should be :see
+    end
+  end
 # Game
-# Holds the deck
-# Keeps track of whose turn it is
-# Keeps track of the amount in the pot.
-#  How to use inheritance to extend a class
 
-describe Robot do
-  subject(:robot) { Robot.new }
+describe Game do
+  subject(:game) { Game.new }
 
-  describe "#position" do
-    its(:position) { should eq ([0, 0]) }
-  end
-
-  describe "move methods" do
-    it "moves left" do
-      robot.move_left
-      robot.position.should eq([-1, 0])
+  describe "#add_players" do
+    it "keeps a player array" do
+      game.add_players("Daniel", "Jim", "Sam")
+      game.players.length.should be(3)
     end
 
-    it "moves right" do
-      robot.move_right
-      robot.position.should eq([1, 0])
+    it "all players are of Player class" do
+      game.players.all? do |player|
+        player.class == Player
+      end.should eq(true)
     end
 
-    it "moves up" do
-      robot.move_up
-      robot.position.should eq([0, 1])
-    end
-
-    it "moves down" do
-      robot.move_down
-      robot.position.should eq([0, -1])
+  describe "#turn" do
+    it "keeps a pointer to a player" do
+      game.turn.nil?.should be(false)
     end
   end
+
+  describe "#pot" do
+    it "keeps tab on the pot" do
+      game.pot.class.should be(Fixnum)
+    end
+  end
+
 end
 
-describe Item do
-  subject(:item) do
-    Item.new("rubies", 20)
-  end
-
-  its(:name) { should eq("rubies") }
-  its(:weight) { should eq(20) }
-end
-
-describe Robot do
-  subject(:robot) { Robot.new }
-  let(:item1) { double("item", :weight => 10) }
-  let(:item2) { double("item2", :weight => 30) }
-
-  let(:light_item) { double("heavy_item", :weight => 1) }
-  let(:max_weight_item) { double("max_weight_item", :weight => 250) }
-
-  describe "#items" do
-    its(:items) { should eq([]) }
-  end
-
-  describe "#pick_up" do
-    it "adds item to items" do
-      robot.pick_up(item1)
-      robot.items.should include(item1)
-    end
-  end
-
-  describe "#items_weight" do
-    its(:items_weight) { should eq(0) }
-
-    it "should sum items weights" do
-      robot.pick_up(item1)
-      robot.pick_up(item2)
-
-      robot.items_weight.should eq(40)
-    end
-  end
-
-  describe "#pick_up" do
-    it "should not add item past maximum weight of 250" do
-      robot.pick_up(max_weight_item)
-
-      expect do
-        robot.pick_up(light_item)
-      end.to raise_error(ArgumentError)
-    end
-  end
-end
-
-describe Robot do
-  subject(:robot) { Robot.new }
-
-  describe "#health" do
-    its(:health) { should eq(100) }
-  end
-
-  describe "#wound" do
-    it "decreases health" do
-      robot.wound(20)
-      robot.health.should eq(80)
-    end
-
-    it "doesn't decrease health below 0" do
-      robot.wound(150)
-      robot.health.should eq(0)
-    end
-  end
-
-  describe "#heal" do
-    it "increases health" do
-      robot.wound(40)
-      robot.heal(20)
-      robot.health.should eq(80)
-    end
-
-    it "doesn't increase health over 100" do
-      robot.heal(10)
-      robot.health.should eq(100)
-    end
-  end
-
-  describe "#attack" do
-    it "wounds other robot with weak default attack" do
-      robot2 = double("robot2")
-      robot2.should_receive(:wound).with(5)
-
-      robot.attack(robot2)
-    end
-  end
-end
-
-describe Bolts do
-  subject(:bolts) { Bolts.new }
-
-  it { should be_an(Item) }
-
-  its(:name) { should eq("bolts") }
-  its(:weight) { should eq(25) }
-
-  describe "#feed" do
-    it "heals the robots health 25pts" do
-      robot = double("robot")
-      robot.should_receive(:heal).with(25)
-
-      bolts.feed(robot)
-    end
-  end
-end
-
-describe Weapon do
-  subject(:weapon) { Weapon.new("power_shock", 10, 45) }
-
-  it { should be_an(Item) }
-
-  its(:name) { should eq("power_shock") }
-  its(:weight) { should eq(10) }
-  its(:damage) { should eq(45) }
-
-  describe "#hit" do
-    let(:robot) { double("robot") }
-
-    it "hurts robot" do
-      robot.should_receive(:wound).with(45)
-      weapon.hit(robot)
-    end
-  end
-end
-
-describe Laser do
-  subject(:laser) { Laser.new }
-
-  it { should be_an(Weapon) }
-
-  its(:name) { should eq("laser") }
-  its(:weight) { should eq(125) }
-  its(:damage) { should eq(25) }
-end
-
-describe PlasmaCannon do
-  subject(:plasma_cannon) { PlasmaCannon.new }
-
-  it { should be_an(Weapon) }
-
-  its(:name) { should eq("plasma_cannon") }
-  its(:weight) { should eq(200) }
-  its(:damage) { should eq(55) }
-end
-
-describe Robot do
-  subject(:robot) { Robot.new }
-
-  describe "#equipped_weapon" do
-    its(:equipped_weapon) { should eq(nil) }
-
-    it "sets equipped weapon" do
-      weapon = double("weapon")
-
-      robot.equipped_weapon = weapon
-      robot.equipped_weapon.should eq(weapon)
-    end
-  end
-
-  describe "#attack" do
-    let(:robot2) { double("robot2") }
-    let(:weapon) { double("weapon") }
-
-    it "uses the equipped weapon in attack" do
-      robot.equipped_weapon = weapon
-
-      weapon.should_receive(:hit).with(robot2)
-      robot.attack(robot2)
-    end
-  end
-end
