@@ -13,11 +13,13 @@ describe Card do
     its(:value) { should eq (:ace) }
   end
 end
+
 # Deck
 describe Deck do
   subject(:deck) { Deck.new() }
 
   describe "#cards" do
+
     it "has 52 cards" do
       expect(deck.cards.length).to eq (52)
     end
@@ -38,10 +40,10 @@ describe Deck do
       end.to eq(13)
     end
 
-    it "has 13 of spade" do
+    it "has 13 of heart" do
       expect do
         suit_count = deck.cards.select do |card|
-          card.suit == :club
+          card.suit == :heart
         end
       end.to eq(13)
     end
@@ -56,27 +58,19 @@ describe Deck do
 
   end
 
-  describe
-
 
   describe "#shuffle" do
-    before do
-      towers.move_from(0)
-      towers.move_to(1)
-    end
-    it "puts current ring into tower" do
-      expect(towers.stacks[1].length).to eq(1)
-    end
-    before do
-      towers.move_from(0)
-    end
-    it "cannot place big ring on small ring" do
-      expect do
-        towers.move_to(1)
-      end.to raise_error(InvalidMoveError)
+    it "shuffles cards" do
+      Deck.new.shuffle == deck {should be_false}
     end
   end
 end
+
+
+
+
+
+
 # Hand
 # The logic of calculating pair, three-of-a-kind, two-pair, etc. goes here.
 # Logic of which hand beats which would go here.
